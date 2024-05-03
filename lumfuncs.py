@@ -1,6 +1,6 @@
 """
 Module containing methods to test models against 
-observedluminosity functions.
+observed luminosity functions.
 Current options are:
     compare_stanekwindow(mod_dict, area_mod)
 """
