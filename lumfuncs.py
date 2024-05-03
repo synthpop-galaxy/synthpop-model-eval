@@ -1,6 +1,6 @@
 """
-Module containing methods to test models against observed
-luminosity functions.
+Module containing methods to test models against 
+observedluminosity functions.
 Current options are:
     compare_stanekwindow(mod_dict, area_mod)
 """
@@ -10,6 +10,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
     
 def compare_stanekwindow(mod_dict, area_mod):
+    """
+    Module to compare a model catalog to the luminosity functions in the Stanek Window
+    from Terry et al. 2020.
+    inputs:
+        mod_dict: dictionary containing the following data arrays for the model catalog:
+            {'V', 'I', 'J', 'H'} (apparent magnitudes)
+        area_mod: the size of the catalog region in degrees^2
+    """
     obs_data = pd.read_csv('data/stanekwindow_lumfuncs.txt', delim_whitespace=True, comment='#', na_values='-')
     filters = ['V','I','J','H']
     fig, axs = plt.subplots(2, 2)
