@@ -11,9 +11,9 @@ from astropy import units as u
 import matplotlib.pyplot as plt
 import pandas as pd
 
-ogle_ews_event_list = ['ob240223','og240001', 'ob240475','ob240521']
-ogle_ews_radec_str = [['17:53:53.93','16:47:10.74','17:23:12.85','18:04:24.43'],
-             ['-28:37:10.5','-39:53:57.0','-29:45:42.9','-27:33:58.2']]
+ogle_ews_event_list = ['ob240223','ob240321', 'ob240475','ob240521']
+ogle_ews_radec_str = [['17:53:53.93','17:58:37.48','17:23:12.85','18:04:24.43'],
+             ['-28:37:10.5','-39:33:04.8','-29:45:42.9','-27:33:58.2']]
 ogle_ews_radec_coord = SkyCoord(*ogle_ews_radec_str, unit=(u.hourangle, u.deg))
 ogle_ews_lb_coord = ogle_ews_radec_coord.transform_to('galactic')
 ogle_ews_lb_flt = np.array([ogle_ews_lb_coord.l.deg, ogle_ews_lb_coord.b.deg])
@@ -39,7 +39,7 @@ def cmds_ogle_ews(model_data):
     m_min, m_max = 18,12
     c_min, c_max = 0,5
     mbins = np.arange(m_max,m_min+0.01,0.5)
-    cbins = np.arange(c_min,c_max+0.01,0.5)
+    cbins = np.arange(c_min,c_max+0.01,0.25)
     for i,ev in enumerate(events):
         plt.subplot(len(events),cols,1+i*cols)
         if lb_flt[0][i]>180:
@@ -54,13 +54,17 @@ def cmds_ogle_ews(model_data):
         plt.text(c_max-1,m_max+0.5,str(len(dat)),c='b')
         plt.xlim(c_min,c_max)
         plt.ylim(m_min,m_max)
+        plt.xlabel('V-I')
+        plt.ylabel('I')
     
         plt.subplot(len(events),cols,cols-1+i*cols)
         plt.title('Luminosity Function')
         plt.hist(dat['I'],histtype='step',label='OGLE EWS', color='k',bins=mbins)
+        plt.xlabel('I')
         plt.subplot(len(events),cols,cols+i*cols)
         plt.title('Color Function')
         plt.hist(dat['V']-dat['I'],histtype='step', color='k',bins=cbins)
+        plt.xlabel('V-I')
     
         for j in range(len(models)):
             all_dat = model_data[ev][models[j]]
@@ -71,11 +75,14 @@ def cmds_ogle_ews(model_data):
             plt.text(c_max-1,m_max+0.5,str(len(cdat)),c='b')
             plt.xlim(c_min,c_max)
             plt.ylim(m_min,m_max)
+            plt.xlabel('V-I')
+            plt.ylabel('I')
     
             plt.subplot(len(events),cols,cols-1+i*cols)
             plt.hist(cdat['I'], histtype='step',label=models[j],bins=mbins,linestyle='--')
             plt.subplot(len(events),cols,cols+i*cols)
             plt.hist(cdat['V']-cdat['I'], histtype='step',bins=cbins,linestyle='--')
+
     
         plt.subplot(len(events),cols,cols-1+i*cols)
         plt.legend()
