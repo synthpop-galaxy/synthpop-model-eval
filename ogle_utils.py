@@ -1,3 +1,5 @@
+# File from https://ogle.astrouw.edu.pl/ -> download site -> ogle4/microlensing_maps/get_OGLE_field.py
+
 """
 A bunch of useful python scripts that:
 * return equatorial/Galactic coordinates of vertices of OGLE-IV fields
