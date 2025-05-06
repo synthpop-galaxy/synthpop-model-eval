@@ -10,6 +10,10 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 import matplotlib.pyplot as plt
 import pandas as pd
+from urllib.request import urlretrieve
+import os
+import gzip
+import shutil
 
 ccyc = ['#377eb8', '#ff7f00', '#4daf4a', '#f781bf', '#a65628', 
         '#984ea3', '#999999', '#e41a1c', '#dede00']
@@ -48,7 +52,7 @@ def cmds_ogle_ews(model_data, separate_populations=False):
         model_data: dictionary with each event from ogle_ews_event_list as a key
             for a sub-dictionary, with each model name as a key for the sub-sub-dictionary
             containing simulated I and V -band photometry
-            e.g. {'ob240223':{'Model1':{'I':[18,13,15], 'V':[15,16,14]}}, ...}
+            e.g. {'OGLE-2025-BLG-0467':{'Model1':{'I':[18,13,15], 'V':[15,16,14]}}, ...}
     output:
         a grid of CMD plots for OGLE EWS data and each model, and luminosity and color functions
     """
