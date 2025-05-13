@@ -14,6 +14,7 @@ from urllib.request import urlretrieve
 import os
 import gzip
 import shutil
+import fetch_data
 
 ccyc = ['#377eb8', '#ff7f00', '#4daf4a', '#f781bf', '#a65628', 
         '#984ea3', '#999999', '#e41a1c', '#dede00']
@@ -25,24 +26,25 @@ ogle_ews_radec_coord = SkyCoord(*ogle_ews_radec_str, unit=(u.hourangle, u.deg))
 ogle_ews_lb_coord = ogle_ews_radec_coord.transform_to('galactic')
 ogle_ews_lb_flt = np.array([ogle_ews_lb_coord.l.deg, ogle_ews_lb_coord.b.deg])
 ogle_ews_solid_angle = 2*2 / (60**2)
+ogle_ews_cats = fetch_data.ogle_ews_mapdat(ogle_ews_event_list)
 
-# Load files, downloading first if needed
-def get_ogle_cutout(event_name, location='data/ogle_ews_cmds/',
-                     url_base='https://www.astrouw.edu.pl/ogle/ogle4/ews/'):
-    try:
-        data = pd.read_csv(location+event_name+'_map.dat', sep='\s+', usecols=[3,5],header=None, names=['V','I'])
-    except:
-        if not os.path.isdir(location):
-            os.mkdir(location)
-        name_pts = event_name.split('-')
-        ogle_location = name_pts[1]+'/'+name_pts[2].lower()+'-'+name_pts[3]+'/'
-        urlretrieve(url_base+ogle_location+'map.dat.gz', location+event_name+'_map.dat.gz')
-        urlretrieve(url_base+ogle_location+'params.dat', location+event_name+'_params.dat')
-        with gzip.open(location+event_name+'_map.dat.gz', 'rb') as f_in:
-            with open(location+event_name+'_map.dat', 'wb') as f_out:
-                shutil.copyfileobj(f_in, f_out)
-        data = pd.read_csv(location+event_name+'_map.dat', sep='\s+', usecols=[3,5],header=None, names=['V','I'])
-    return data
+# # Load files, downloading first if needed
+# def get_ogle_cutout(event_name, location='data/ogle_ews_cmds/',
+#                      url_base='https://www.astrouw.edu.pl/ogle/ogle4/ews/'):
+#     try:
+#         data = pd.read_csv(location+event_name+'_map.dat', sep='\s+', usecols=[3,5],header=None, names=['V','I'])
+#     except:
+#         if not os.path.isdir(location):
+#             os.mkdir(location)
+#         name_pts = event_name.split('-')
+#         ogle_location = name_pts[1]+'/'+name_pts[2].lower()+'-'+name_pts[3]+'/'
+#         urlretrieve(url_base+ogle_location+'map.dat.gz', location+event_name+'_map.dat.gz')
+#         urlretrieve(url_base+ogle_location+'params.dat', location+event_name+'_params.dat')
+#         with gzip.open(location+event_name+'_map.dat.gz', 'rb') as f_in:
+#             with open(location+event_name+'_map.dat', 'wb') as f_out:
+#                 shutil.copyfileobj(f_in, f_out)
+#         data = pd.read_csv(location+event_name+'_map.dat', sep='\s+', usecols=[3,5],header=None, names=['V','I'])
+#     return data
 
 def cmds_ogle_ews(model_data, separate_populations=False):
     """
@@ -73,7 +75,7 @@ def cmds_ogle_ews(model_data, separate_populations=False):
             lpnt = lb_flt[0][i]
         lstr,bstr = f'{lpnt:3.1f}', f'{lb_flt[1][i]:3.1f}'
         plt.title(ev+' ('+lstr+','+bstr+')')
-        dat = get_ogle_cutout(ev)
+        dat = ogle_ews_cats[ev]
         dat = dat[(dat['I']<m_min) & (dat['I']>m_max) & (dat['V']-dat['I']>c_min) & (dat['V']-dat['I']<c_max)]
         plt.plot(dat['V']-dat['I'],dat['I'], 'k.')
         plt.text(c_max-1,m_max+0.5,str(len(dat)),c='dimgray')
