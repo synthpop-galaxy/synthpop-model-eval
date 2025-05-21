@@ -40,6 +40,7 @@ def compare_stanekwindow(model_data, model_area, model_filt_cors=None, obs_filt_
         a plot of the luminosity function histograms for each band
     """
     obs_data = get_terry2020_lf()
+    filt_list = {'V':'WFC3_UVIS_F555W','I':'WFC3_UVIS_F814W','J':'WFC3_IR_F110W','H':'WFC3_IR_F160W'}
     fig, axs = plt.subplots(1,len(use_filters),figsize=(3.5*len(use_filters),4))
     for i,filt in enumerate(use_filters):
         if obs_filt_cors is not None:
@@ -50,10 +51,12 @@ def compare_stanekwindow(model_data, model_area, model_filt_cors=None, obs_filt_
 
         bin_width=0.3
         mod_bins = np.array(obs_data[filt][~np.isnan(obs_data[filt])])
+        mod_filt = filt_list[filt]
         if model_filt_cors is not None:
-            model_data[filt] = model_data[filt]-model_filt_cors[i]
-        mod_hist = np.log10(np.histogram(model_data[filt], bins=mod_bins)[0]/ bin_width / model_area / 60**2)
+            model_data[mod_filt] = model_data[mod_filt]-model_filt_cors[i]
+        mod_hist = np.log10(np.histogram(model_data[mod_filt], bins=mod_bins)[0]/ bin_width / model_area / 60**2)
         axs[i].step((mod_bins[1:]+mod_bins[:-1])/2, mod_hist, where='mid', label='model')
     axs[0].legend()
     plt.suptitle("Luminosity functions toward the Stanek Window\n(l,b) = (0.25,-2.15), data from Terry et al. (2020)")
     fig.tight_layout()
+    return fig
