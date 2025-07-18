@@ -1,6 +1,8 @@
 # synthpop-model-eval
 A collection of tests to allow for comparison between Galactic models and observational data.
 
+NOTE: I didn't really stick with this scheme completely, but might try to clean things back up into this format.
+
 The basic set up right now is that each test category is a python module, and each individual test is a function. Each function takes in specific data columns from the Galactic model output and compares it to an observed data set. An example Jupyter notebook shows how an example test can be run on a SynthPop catalog.
 
 The current test categories, and test data sets for each are:
