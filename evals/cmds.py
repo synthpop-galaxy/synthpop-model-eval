@@ -19,9 +19,9 @@ import fetch_data
 ccyc = ['#377eb8', '#ff7f00', '#4daf4a', '#f781bf', '#a65628', 
         '#984ea3', '#999999', '#e41a1c', '#dede00']
 
-ogle_ews_event_list = ['OGLE-2025-BLG-0467', 'OGLE-2025-BLG-0127', 'OGLE-2025-BLG-0412', 'OGLE-2025-BLG-0110']
-ogle_ews_radec_str = [['17:58:53.03', '17:48:50.25', '17:45:37.72', '18:15:26.22'],
-                      ['-29:11:29.3', '-37:15:03.9', '-22:35:55.7', '-32:03:54.5']]
+ogle_ews_event_list = ['OGLE-2025-BLG-0467','OGLE-2025-BLG-0008', 'OGLE-2025-BLG-0412', 'OGLE-2025-BLG-0110'] #'OGLE-2025-BLG-0127', 
+ogle_ews_radec_str = [['17:58:53.03', '17:53:08.19',  '17:45:37.72', '18:15:26.22'], #'17:48:50.25',
+                      ['-29:11:29.3', '-29:06:14.3', '-22:35:55.7', '-32:03:54.5']] # '-37:15:03.9',
 ogle_ews_radec_coord = SkyCoord(*ogle_ews_radec_str, unit=(u.hourangle, u.deg))
 ogle_ews_lb_coord = ogle_ews_radec_coord.transform_to('galactic')
 ogle_ews_lb_flt = np.array([ogle_ews_lb_coord.l.deg, ogle_ews_lb_coord.b.deg])
@@ -58,11 +58,14 @@ def cmds_ogle_ews(model_data, separate_populations=False):
     output:
         a grid of CMD plots for OGLE EWS data and each model, and luminosity and color functions
     """
+    plt.rcParams["font.size"] = 18
+    
     events = ogle_ews_event_list
     lb_flt = ogle_ews_lb_flt
     cols = 3+len(model_data[events[0]])
     models = list(model_data[events[0]].keys())
-    plt.subplots(nrows=len(events),ncols=cols, figsize=(4*cols,4*len(events)))
+    plt.subplots(nrows=len(events),ncols=cols, figsize=(4*cols*0.9,4*len(events)),
+                 layout='constrained')
     m_min, m_max = 18,12
     c_min, c_max = 0,5
     mbins = np.arange(m_max,m_min+0.01,0.5)
@@ -74,32 +77,44 @@ def cmds_ogle_ews(model_data, separate_populations=False):
         else:
             lpnt = lb_flt[0][i]
         lstr,bstr = f'{lpnt:3.1f}', f'{lb_flt[1][i]:3.1f}'
-        plt.title(ev+' ('+lstr+','+bstr+')')
+        plt.title('OB25'+ev[-4:]+' ('+lstr+','+bstr+')', loc='left')
         dat = ogle_ews_cats[ev]
         dat = dat[(dat['I']<m_min) & (dat['I']>m_max) & (dat['V']-dat['I']>c_min) & (dat['V']-dat['I']<c_max)]
         plt.plot(dat['V']-dat['I'],dat['I'], 'k.')
-        plt.text(c_max-1,m_max+0.5,str(len(dat)),c='dimgray')
+        plt.text(c_min+0.1,m_max+0.5,'OGLE EWS')
+        plt.text(c_max-0.1,m_max+0.5,str(len(dat)),c='dimgray',ha='right')
         plt.xlim(c_min,c_max)
         plt.ylim(m_min,m_max)
         plt.xlabel('V-I')
         plt.ylabel('I')
+        plt.grid(True)
     
         plt.subplot(len(events),cols,cols-1+i*cols)
-        plt.title('Luminosity Function')
-        plt.hist(dat['I'],histtype='step',label='OGLE EWS', color='k',bins=mbins)
+        plt.ylabel(r'N$_*$')
+        #plt.title('Luminosity Function')
+        hs,_ = np.histogram(dat['I'], bins=mbins)
+        plt.errorbar(mbins[:-1]+np.diff(mbins)/2, hs, yerr=np.sqrt(hs),
+                     label='OGLE EWS', color='k', linestyle='none', marker='.')
         plt.xlabel('I')
+        ax1=plt.gca()
+        
         plt.subplot(len(events),cols,cols+i*cols)
-        plt.title('Color Function')
-        plt.hist(dat['V']-dat['I'],histtype='step', color='k',bins=cbins)
+        #plt.title('Color Function')
+        hs,_ = np.histogram(dat['V']-dat['I'], bins=cbins)
+        plt.errorbar(cbins[:-1]+np.diff(cbins)/2, hs, yerr=np.sqrt(hs), 
+                 color='k', linestyle='none', marker='.')
         plt.xlabel('V-I')
+        plt.gca().sharey(ax1)
+        plt.gca().tick_params(axis='y', labelleft=False)
     
         for j in range(len(models)):
             all_dat = model_data[ev][models[j]]
             cdat = all_dat[(all_dat['I']<m_min) & (all_dat['I']>m_max) & (all_dat['V']-all_dat['I']>c_min) & (all_dat['V']-all_dat['I']<c_max)]
             plt.subplot(len(events),cols,2+j+i*cols)
-            plt.title(models[j])
+            plt.gca().tick_params(axis='y', labelleft=False)
+            #plt.title(models[j])
             if not separate_populations:
-                plt.plot(cdat['V']-cdat['I'],cdat['I'], 'k.')
+                plt.plot(cdat['V']-cdat['I'],cdat['I'], '.', c=ccyc[j])
             else:
                 pp = cdat['pop']==0.0
                 plt.plot(cdat['V'][pp]-cdat['I'][pp],cdat['I'][pp], marker='.',linestyle='none',c=ccyc[0], label='bulge')
@@ -108,19 +123,21 @@ def cmds_ogle_ews(model_data, separate_populations=False):
                 pp = cdat['pop']>3.0
                 plt.plot(cdat['V'][pp]-cdat['I'][pp],cdat['I'][pp], marker='.',linestyle='none',c=ccyc[1], label='disk')
                 plt.legend(loc=2)
-            plt.text(c_max-1,m_max+0.5,str(len(cdat)),c='dimgray')
+            plt.text(c_max-0.1,m_max+0.5,str(len(cdat)),c='dimgray', ha='right')
+            plt.text(c_min+0.1,m_max+0.5,'SP-H25')
             plt.xlim(c_min,c_max)
             plt.ylim(m_min,m_max)
             plt.xlabel('V-I')
-            plt.ylabel('I')
+            #plt.ylabel('I')
+            plt.grid(True)
     
             plt.subplot(len(events),cols,cols-1+i*cols)
-            plt.hist(cdat['I'], histtype='step',label=models[j],bins=mbins,linestyle='--')
+            plt.hist(cdat['I'], histtype='step',label=models[j],bins=mbins,linestyle='-')
             plt.subplot(len(events),cols,cols+i*cols)
-            plt.hist(cdat['V']-cdat['I'], histtype='step',bins=cbins,linestyle='--')
+            plt.hist(cdat['V']-cdat['I'], histtype='step',bins=cbins,linestyle='-')
 
     
         plt.subplot(len(events),cols,cols-1+i*cols)
         plt.legend()
     
-        plt.tight_layout()
+    #plt.gcf().tight_layout()
