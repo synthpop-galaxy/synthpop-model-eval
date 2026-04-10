@@ -15,6 +15,7 @@ mod = sp.SynthPop('huston2025_defaults.synthpop_conf',
                   post_processing_kwargs=[{"name":"ProcessDarkCompactObjects", "remove":True}],
                   name_for_output="Huston2025",
                   output_location="outputfiles/ogle_chips/src",
+                  skip_lowmass_stars=True,
                   output_file_type="h5"
                  )
 mod.init_populations()
